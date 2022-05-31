@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset ="utf-8">
+	<meta name="viewport" content="width = device-width, initial-scale=1">
+	<title></title>
+	<script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+	<link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+
+	<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/css/ol.css" type="text/css">
+ 	<script
+src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>
+ <!-- Añadimos el control de capas en openlayers -->
+	<link rel="stylesheet" href="ol-layerswitcher-master/src/ollayerswitcher.css" type="text/css"/>
+	<script src="ol-layerswitcher-master/dist/ol-layerswitcher.js"></script>
+
+	<style>
+	 #mibloquemapa {
+	width:  600px;
+	height: 600px;
+	box-shadow:  50px 50px 50px #F83208;
+	}
+	.ol-mouse-position {
+	font-size:18px;
+	font-family: Arial black;
+	top:5px;
+	right:5px;
+	position:absolute;
+	color: #F83208;
+}
+
+	</style>
+
+</head>
+<body>
+
+	<h1>Mi primer mapa web</h1>
+	<div id= 'mibloquemapa' class="mibloque"></div>
+
+		<script type="text/javascript">
+
+var CapaBase= new ol.layer.Tile ({ title: 'Capa base OSM', type:'base', visible:true, source: new ol.source.OSM()});
+var CapaBaseStamen = new ol.layer.Tile({title: 'Capa base stamen',type:'base', visible:false,source: new ol.source.Stamen({layer:'toner'})});
+var CapaBaseBing = new ol.layer.Tile({ title: 'Capa base Bing',type:'base', visible:false,source: new ol.source.BingMaps({key:'AkGbxXx6tDWf1swIhPJyoAVp06H0s0gDTYslNWWHZ6RoPqMpB9ld5FY1WutX8UoF',imagerySet:'Road'})});
+var MapaRasterIGN = new ol.layer.Image({ title: 'Capa base IGN',type:'base', visible:false,source: new ol.source.ImageWMS({url: 'http://www.ign.es/wms-inspire/mapa-raster',params: {LAYERS: 'mtn_rasterizado'},})});
+var MapaPNOA = new ol.layer.Image({ title: 'Capa base PNOA',
+type:'base', visible:false, source: new ol.source.ImageWMS({url: 'http://www.ign.es/wms-inspire/pnoa-ma',params: {LAYERS: 'OI.OrthoimageCoverage'},})});
+
+
+var fuente1 = new ol.source.Vector ({format: new ol.format.GeoJSON(),
+	url:'http://localhost:8080/geoserver/www/Limite_costas.geojson'});
+var fuente2 = new ol.source.Vector ({format: new ol.format.GeoJSON(),
+	url:'http://localhost:8080/geoserver/www/Parcelas de catastro.geojson'});
+
+
+
+var Estilo_Superficies = function(feature) { 
+	return [new ol.style.Style({
+ 			fill: new ol.style.Fill({
+				color: 'orange',
+				}),
+	})];
+};
+var Estilo_Lineas = [new ol.style.Style({
+ 		stroke: new ol.style.Stroke({
+			color: 'red',
+			width: 3}),
+	})];
+
+
+var capa_superficial= new ol.layer.Vector ({
+ 		title:'Catastro',
+ 			source: fuente2,
+ 			projection: 'EPSG:4326',
+ 			style:Estilo_Superficies,
+ 			visible: true,
+	}); 
+var capa_lineal1= new ol.layer.Vector ({
+		title:'Linea de costa',
+		 	source: fuente1,
+		 	projection: 'EPSG:4326',
+		 	style: Estilo_Lineas,
+		 	visible: true,
+	});
+
+var lavista= new ol.View({ center: ol.proj.fromLonLat([-2.674246,42.839311]), zoom: 10});
+var controles = ol.control.defaults().extend([
+		new ol.control.FullScreen(),
+		new ol.control.ZoomSlider(),
+		new ol.control.ScaleLine(),
+		new ol.control.ZoomToExtent (),
+		new ol.control.MousePosition({projection: 'EPSG:4326', coordinateFormat: function(coordinate) { return ol.coordinate.format(coordinate, '{y}, {x}', 6); }
+	}), ]);
+var mimapa = new ol.Map({
+	target: 'mibloquemapa',
+	layers:[new ol.layer.Group ({title: 'Mapas base', layers: [CapaBase, CapaBaseStamen, CapaBaseBing, MapaRasterIGN, MapaPNOA]}),
+		new ol.layer.Group ({title: 'Superpuestos', layers:[capa_superficial,capa_lineal1]})],
+	view: lavista,
+	controls:controles,
+	});
+var layerSwitcher = new ol.control.LayerSwitcher({tipLabel: 'Leyenda'});
+mimapa.addControl(layerSwitcher);
+layerSwitcher.showPanel();
+</script>
+</body>
+</html>
